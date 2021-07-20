@@ -2,16 +2,27 @@ const Alexa = require('ask-sdk-core');
 const CTA_CONFIG = require('./cta.config.js');
 const axios = require('axios');
 const api_key = CTA_CONFIG.config.BUS_API_KEY;
-const TRAIN_INFO = require('./train_station_info.json');
-const data = JSON.parse(TRAIN_INFO);
+const fs = require('fs');
+const stationMap = new Map();
 
-const train_name_ids = data.Stations;
-const train_map = new Map();
+fs.readFile('./train_station_info.json', 'utf8', (err, jsonString) => {
+    if (err) {
+        console.log("Error reading file from disk:", err)
+        return
+    }
+    try {
+        const fileString = JSON.parse(jsonString)
+        // console.log(stations)
 
-for (const item in train_name_ids){
-    train_map.set(item.Name, item.Code);
+        for(let i = 0; i < fileString.Stations.length; i++) {
+            stationMap.set(fileString.Stations[i].Name.toLowerCase(), fileString.Stations[i].Code)
+        }
+        console.log(stationMap);
+    } catch(err) {
+        console.log('Error parsing JSON string:', err)
+    }
+})
 
-}
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
@@ -32,7 +43,6 @@ const GetBusPositionIntentHandler = {
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetBusPositionIntent';
     },
     async handle(handlerInput) {
-        //what does request envelope do?
         const {requestEnvelope} = handlerInput;
         //get the value of the entities/slots which should be set already in the developer console 
         const RouteID = Alexa.getSlotValue(requestEnvelope,'RouteID');
@@ -120,32 +130,53 @@ const GetNextTrainIntentHandler = {
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetNextTrainIntent';
     },
     async handle(handlerInput) {
-        //what does request envelope do?
         const {requestEnvelope} = handlerInput;
-        //get the value of the entities/slots which should be set already in the developer console 
-        //stop id is required for this API
-        const stationName = Alexa.getSlotValue(requestEnvelope,'StationName');
-        //const trainLine = Alexa.getSlotValue(requestEnvelope,'TrainLine');
-        const trainID = train_map[stationName];
-        
-        // Given the bus number and direction, get the corresponding bus stop number from the CTA config file
-        //const busStop = CTA_CONFIG.config.BUS_STOPS[busNumber][busDirection.toLowerCase()];
-    
+        //convert the value spoken by the users into canonical value 
+        const getCanonicalSlot = (slot) => {
+        if (slot.resolutions && slot.resolutions.resolutionsPerAuthority.length) {
+            for (let resolution of slot.resolutions.resolutionsPerAuthority) {
+                if (resolution.status && resolution.status.code === 'ER_SUCCESS_MATCH') {
+                    return resolution.values[0].value.name;
+                }
+            }
+        }
+    }
+        let stationSlot = Alexa.getSlot(requestEnvelope, 'StationName');
+        let stationName = getCanonicalSlot(stationSlot);
+        let directionSlot = Alexa.getSlot(requestEnvelope, 'TrainDirection');
+        let directionName = getCanonicalSlot(directionSlot);
+        const trainID = stationMap.get(stationName);
+       
         // Execute the API call to get the real-time next bus predictions
 
         let response = await axios.get(`https://api.wmata.com/StationPrediction.svc/json/GetPrediction/${trainID}`, {headers: {"api_key": api_key}});
         // Define the speakOutput string variable, then populate accordingly
         let speakOutput;
-        // Check to ensure there is a 'bustime-response' object
+        // Check to ensure there is a 'response' object
         if(response && response.data){
           // Check to ensure there are available prediction times
           //if(response.data['bustime-response'].prd && 0 < response.data['bustime-response'].prd.length){
             // Extract the arrival time of the lastest bus
             //let stopName = response.data["StopName"];
-            let destination = response.data['Trains'][0]["Destination"];
-            let minutes = response.data['Trains'][0]["Min"];
-            // Construct the next bus arrival speech output with the given time retrieved
-            speakOutput = `the next train towards ${destination}, train ID ${trainID},  will arrive at ${stationName} in ${minutes} minutes`;
+            speakOutput = `no train arriving at this station goes towards ${directionName}`
+            //check if the direction is valid
+            for (let i = 0; i <response.data['Trains'].length;i++) {
+                if (response.data['Trains'][i]["DestinationName"].toLowerCase() !== directionName) {
+                    continue;
+                }else{
+                    let destination = response.data['Trains'][i]["DestinationName"];
+                    let minutes = response.data['Trains'][i]["Min"];
+                    if (minutes === "ARR"){
+                        speakOutput = `the train is arriving now`;
+                    }else if(minutes === "BRD"){
+                    speakOutput = `the train is boarding passengers now`;  
+                    }else {
+                        speakOutput = `the next train towards ${destination}, train ID ${trainID},  will arrive at ${stationName} in ${minutes} minutes`;
+                        
+                    }
+                    break;
+                }
+            }
         }else{
             speakOutput = `An error has occurred while retrieving the position information`;
         }
