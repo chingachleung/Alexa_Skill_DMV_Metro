@@ -2,33 +2,13 @@ const Alexa = require('ask-sdk-core');
 const CTA_CONFIG = require('./cta.config.js');
 const axios = require('axios');
 const api_key = CTA_CONFIG.config.BUS_API_KEY;
-const fs = require('fs');
-const stationMap = new Map();
-
-fs.readFile('./train_station_info.json', 'utf8', (err, jsonString) => {
-    if (err) {
-        console.log("Error reading file from disk:", err)
-        return
-    }
-    try {
-        const fileString = JSON.parse(jsonString)
-        // console.log(stations)
-
-        for(let i = 0; i < fileString.Stations.length; i++) {
-            stationMap.set(fileString.Stations[i].Name.toLowerCase(), fileString.Stations[i].Code)
-        }
-        console.log(stationMap);
-    } catch(err) {
-        console.log('Error parsing JSON string:', err)
-    }
-})
 
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
-        const speakOutput = 'Welcome, I can tell you where a bus in a specifc route is, or tell you when the next bus arrives at a given stop';
+        const speakOutput = 'Hi there! How can I help you?';
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
@@ -37,6 +17,7 @@ const LaunchRequestHandler = {
     }
 };
 
+//ignore this for this stage 
 const GetBusPositionIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
@@ -81,7 +62,7 @@ const GetBusPositionIntentHandler = {
             .getResponse();
     }
 };
-
+//ignore this for this stage
 const GetNextBusIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
@@ -131,6 +112,7 @@ const GetNextTrainIntentHandler = {
     },
     async handle(handlerInput) {
         const {requestEnvelope} = handlerInput;
+        
         //convert the value spoken by the users into canonical value 
         const getCanonicalSlot = (slot) => {
         if (slot.resolutions && slot.resolutions.resolutionsPerAuthority.length) {
@@ -139,54 +121,120 @@ const GetNextTrainIntentHandler = {
                     return resolution.values[0].value.name;
                 }
             }
+            return null; 
         }
-    }
-        let stationSlot = Alexa.getSlot(requestEnvelope, 'StationName');
-        let stationName = getCanonicalSlot(stationSlot);
-        let directionSlot = Alexa.getSlot(requestEnvelope, 'TrainDirection');
-        let directionName = getCanonicalSlot(directionSlot);
-        const trainID = stationMap.get(stationName);
-       
-        // Execute the API call to get the real-time next bus predictions
-
-        let response = await axios.get(`https://api.wmata.com/StationPrediction.svc/json/GetPrediction/${trainID}`, {headers: {"api_key": api_key}});
-        // Define the speakOutput string variable, then populate accordingly
-        let speakOutput;
-        // Check to ensure there is a 'response' object
-        if(response && response.data){
-          // Check to ensure there are available prediction times
-          //if(response.data['bustime-response'].prd && 0 < response.data['bustime-response'].prd.length){
-            // Extract the arrival time of the lastest bus
-            //let stopName = response.data["StopName"];
-            speakOutput = `no train arriving at this station goes towards ${directionName}`
-            //check if the direction is valid
-            for (let i = 0; i <response.data['Trains'].length;i++) {
-                if (response.data['Trains'][i]["DestinationName"].toLowerCase() !== directionName) {
-                    continue;
-                }else{
-                    let destination = response.data['Trains'][i]["DestinationName"];
-                    let minutes = response.data['Trains'][i]["Min"];
-                    if (minutes === "ARR"){
-                        speakOutput = `the train is arriving now`;
-                    }else if(minutes === "BRD"){
-                    speakOutput = `the train is boarding passengers now`;  
-                    }else {
-                        speakOutput = `the next train towards ${destination}, train ID ${trainID},  will arrive at ${stationName} in ${minutes} minutes`;
-                        
-                    }
-                    break;
+        else{
+            return null;
+        }
+        }
+        // function to get station code from station name
+        const getStationCode = (stationName) => {
+            for (let i = 0; i < stations.length; i++){
+                if (stations[i]["Name"].toLowerCase() === stationName){
+                    let StationCode = stations[i]["Code"];
+                    return StationCode;
                 }
             }
-        }else{
-            speakOutput = `An error has occurred while retrieving the position information`;
+            return null;
+        }
+        
+        const responseForStations = await axios.get(`https://api.wmata.com/Rail.svc/json/jStations`, {headers: {"api_key": api_key}});
+        const stations = responseForStations.data["Stations"]; 
+        
+        
+        //get station code only if the station name given by users is valid, else return null 
+        
+        let homeStationSlot = Alexa.getSlot(requestEnvelope, 'HomeStationName');
+        let homeStation = getCanonicalSlot(homeStationSlot); // return null if station does not exist 
+        let homeStationCode;
+        
+        if (homeStation === null) {
+            homeStationCode = null;
+        }
+        else{
+            homeStationCode = getStationCode(homeStation.toLowerCase());
+        }
+        
+        let userDestinationSlot = Alexa.getSlot(requestEnvelope, 'UserDestination');
+        let userDestination = getCanonicalSlot(userDestinationSlot);
+        let userDestinationCode;
+        
+        if (userDestination === null) {
+            userDestinationCode = null;
+        }
+        else{
+            
+            userDestinationCode = getStationCode(userDestination.toLowerCase());
+        }
+       
+        // Execute the API call to get the real-time next bus predictions
+        let speakOutput;
+        if (!(homeStationCode === null || userDestinationCode === null)){
+            let response = await axios.get(`https://api.wmata.com/StationPrediction.svc/json/GetPrediction/${homeStationCode}`, {headers: {"api_key": api_key}});
+            // Define the speakOutput string variable, then populate accordingly
+            let found;
+            let endPointCode;
+            // Check to ensure there is a 'response' object
+            if (response && response.data) {
+              // Check to ensure there are available prediction times
+              //if(response.data['bustime-response'].prd && 0 < response.data['bustime-response'].prd.length){
+                // Extract the arrival time of the lastest bus
+                //let stopName = response.data["StopName"];
+                speakOutput = `there is no train that goes directly from ${homeStation} to ${userDestination}`;
+                //check if the direction is valid
+                let trainPredictions = response.data['Trains'];
+                for (let i = 0; i <trainPredictions.length; i++){
+                    let prediction = trainPredictions[i]
+                    if (prediction["DestinationCode"] === endPointCode){
+                        //check if the endpoint is already checked
+                        continue;    
+                    }
+                    else{
+                        endPointCode = prediction["DestinationCode"];
+                        let response2 = await axios.get(`https://api.wmata.com/Rail.svc/json/jPath?FromStationCode=${homeStationCode}&ToStationCode=${endPointCode}`,{headers: {"api_key": api_key}});
+                        if (response2 && response2.data){
+                            let path = response2.data["Path"];
+                            for(let i = 1; i < path.length; i++){
+                                if (path[i]["StationCode"] === userDestinationCode){
+                                    let minutes = prediction["Min"];
+                                    if (minutes === "ARR") {
+                                        speakOutput = ` the train is arriving now`;
+                                    }
+                                    else if (minutes === "BRD" ){
+                                        speakOutput = `the train is boarding passengers now`;
+                                    }
+                                    else{
+                                        speakOutput = `the next train to ${userDestination} will arrive in ${minutes} minutes`;
+                                    }
+                                    found = true;
+                                    break;
+                                }
+                            }                        
+                        }
+                        else{
+                            speakOutput = `An error has occurred while retrieving the requried information`;
+                        }
+                    }
+                    if (found === true) {
+                        break;
+                    }
+                }
+            } 
+            else {
+                speakOutput = `An error has occurred while retrieving the position information`;
+    
+            }            
+        }
+        else{
+            speakOutput = "Sorry, at least one of the stations you mentioned is not valid"
         }
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .reprompt('Is there anything else I can help you with?')
             //.withShouldEndSession(true)
             .getResponse();
-    }
+        }
 };
 
 const HelpIntentHandler = {
