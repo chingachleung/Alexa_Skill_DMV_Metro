@@ -9,7 +9,18 @@ Once you are on their Alexa Skills developer console, **Create Skill** > **Enter
 
 # Invocations
 
-You will need to pick a unique invocation name for you skill. My skill is called dmv metro. So when a user says something like " hey alexa, open DMV metro", Alexa will invoke my skill.
+You will need to pick a unique invocation name for you skill. My skill is called dmv metro. So when a user says something like " hey alexa, open DMV metro", Alexa will invoke my skill. So if you are planning to pubish your skill, make sure to pick a unique name!
 
 ![Screenshot 2021-11-14 at 9 34 27 PM](https://user-images.githubusercontent.com/36772713/141713309-664c9413-0fa4-4084-a84a-ff5fd57b0822.png)
+
+# Intents
+Intents are basically the features you will provide to your users. In the DMV metro skill, there are two intents: UserSetHomeIntent and GetNextTrainIntent. The first intent allows users to save their home station, so the skill does not need to repeat asking where they are departing from over and over again. The second intent will retrieve the  arrival time of the coming metro. 
+
+# Sample Utterances
+
+Samples utterances are used to invoke a specific intent within a skill. For example, in my GetNextTrainIntent, these are some of the sample utterances:
+
+
+
+
 
