@@ -20,6 +20,13 @@ Intents are basically the features you will provide to your users. In the DMV me
 
 Samples utterances are used to invoke a specific intent within a skill. For example, in my GetNextTrainIntent, these are some of the sample utterances:
 
+![Screenshot 2021-11-14 at 10 37 03 PM](https://user-images.githubusercontent.com/36772713/141718550-d05cc4c5-0fb2-4052-967a-da2a6614da1f.png)
+
+These utterances are used as training phrases to be fed into their machine learning model. Once you have enough training phrases, their model will be able to learn from the sample, and generalize to other similar utterances. So the skill is able to invoke the intent even with an utterance that is not in the sample!
+
+# Intent Slots
+
+Intent slots are arguments or information users need to provide to a skill in order to fulfil an intent.
 
 
 
