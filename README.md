@@ -26,8 +26,11 @@ These utterances are used as training phrases to be fed into their machine learn
 
 # Intent Slots
 
-Intent slots are arguments or information users need to provide to a skill in order to fulfil an intent.
+Intent slots are arguments or information users need to provide to a skill in order to fulfil an intent. For example, in order to fulfil the GetNextTrainIntent, users need to tell provide information for the HomeStationName and UserDestination slots so Alexa knows which station they are departing from and where they want to go.
 
+![Screenshot 2021-11-14 at 10 52 32 PM](https://user-images.githubusercontent.com/36772713/141719679-7d997af9-b64f-46e3-93ad-6912e3b84e16.png)
+
+Slot types define the kind of data you are expected for each slot. Alexa developer console has some slot types built in, such as airline names and months, and you can also create your own slot type. In my skill, I created my own slot type STATIONNAME, which is a list of DMV metro stations. With my own customized slot type, I can make sure I am getting the valid station names from users, and throw an error messge if users give Alexa a station name that does not exist. 
 
 
 
