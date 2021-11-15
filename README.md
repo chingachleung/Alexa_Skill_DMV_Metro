@@ -7,7 +7,9 @@ You will need to have a Amazon account to log into their developer console.
 
 Once you are on their Alexa Skills developer console, **Create Skill** > **Enter skill name** -> **choose Custom skill** -> **choose either Alexa-hosted (Node.js) or Alexa-hosted(python)**. After that, you can choose an existing template to start with or start from scratch. I decided to start from scratch because there were a template that was doing something similar,and I figured making changes could be more time consuming than starting from scratch. 
 
+# Invocations
 
+You will need to pick a unique invocation name for you skill. My skill is called dmv metro. So when a user says something like " hey alexa, open DMV metro", Alexa will invoke my skill.
 
-
+![Screenshot 2021-11-14 at 9 34 27 PM](https://user-images.githubusercontent.com/36772713/141713309-664c9413-0fa4-4084-a84a-ff5fd57b0822.png)
 
