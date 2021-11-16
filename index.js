@@ -1,7 +1,7 @@
 const Alexa = require('ask-sdk-core');
 const CTA_CONFIG = require('./cta.config.js');
 const axios = require('axios');
-const api_key = CTA_CONFIG.config.BUS_API_KEY;
+const api_key = CTA_CONFIG.config.WMATA_API_KEY;
 
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
