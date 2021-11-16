@@ -79,7 +79,7 @@ const GetNextTrainIntentHandler = {
             userDestinationCode = getStationCode(userDestination.toLowerCase());
         }
        
-        // Execute the API call to get the real-time next bus predictions
+        // Execute the API call to get the real-time next train predictions
         let speakOutput;
         if (!(homeStationCode === null || userDestinationCode === null)){
             let response = await axios.get(`https://api.wmata.com/StationPrediction.svc/json/GetPrediction/${homeStationCode}`, {headers: {"api_key": api_key}});
@@ -89,8 +89,6 @@ const GetNextTrainIntentHandler = {
             // Check to ensure there is a 'response' object
             if (response && response.data) {
               // Check to ensure there are available prediction times
-              //if(response.data['bustime-response'].prd && 0 < response.data['bustime-response'].prd.length){
-                // Extract the arrival time of the lastest bus
                 speakOutput = `there is no train that goes directly from ${homeStation} to ${userDestination}`;
                 //check if the direction is valid
                 let trainPredictions = response.data['Trains'];
