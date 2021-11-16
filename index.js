@@ -17,94 +17,6 @@ const LaunchRequestHandler = {
     }
 };
 
-//ignore this for this stage 
-const GetBusPositionIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetBusPositionIntent';
-    },
-    async handle(handlerInput) {
-        const {requestEnvelope} = handlerInput;
-        //get the value of the entities/slots which should be set already in the developer console 
-        const RouteID = Alexa.getSlotValue(requestEnvelope,'RouteID');
-        
-        // Given the bus number and direction, get the corresponding bus stop number from the CTA config file
-        //const busStop = CTA_CONFIG.config.BUS_STOPS[busNumber][busDirection.toLowerCase()];
-        // Construct the params needed for the API call
-        const params1 = {
-          RouteID: RouteID
-        };
-
-        // Execute the API call to get the real-time next bus predictions
-        //this is the correct version, but how to show flexibility to how to get parameters 
-        //let response = await axios.get(`${CTA_CONFIG.config.BUS_ROOT_URL}jBusPositions?RouteID=70`, {headers: {"api_key":'846745bc4e1c4ac78f9b6fe6633a9b54'}});
-        let response = await axios.get('https://api.wmata.com/Bus.svc/json/jBusPositions', {headers: {"api_key": api_key}}, {params: params1});
-        // Define the speakOutput string variable, then populate accordingly
-        let speakOutput;
-        // Check to ensure there is a 'bustime-response' object
-        if(response && response.data){
-          // Check to ensure there are available prediction times
-          //if(response.data['bustime-response'].prd && 0 < response.data['bustime-response'].prd.length){
-            // Extract the position of the lastest bus
-            let blockNumber = response.data['BusPositions'][0]["BlockNumber"];
-            let lat = response.data['BusPositions'][0]["Lat"];
-            let lon = response.data['BusPositions'][0]["Lon"];
-            // Construct the next bus arrival speech output with the given time retrieved
-            speakOutput = `the bus ${blockNumber} in route ${RouteID} is in ${lat} ${lon}`;
-        }else{
-            speakOutput = `An error has occurred while retrieving the position information`;
-        }
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
-            //.withShouldEndSession(true)
-            .getResponse();
-    }
-};
-//ignore this for this stage
-const GetNextBusIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetNextBusIntent';
-    },
-    async handle(handlerInput) {
-        //what does request envelope do?
-        const {requestEnvelope} = handlerInput;
-        //get the value of the entities/slots which should be set already in the developer console 
-        //stop id is required for this API
-        const stopID = Alexa.getSlotValue(requestEnvelope,'StopID');
-        
-        // Given the bus number and direction, get the corresponding bus stop number from the CTA config file
-        //const busStop = CTA_CONFIG.config.BUS_STOPS[busNumber][busDirection.toLowerCase()];
-    
-        // Execute the API call to get the real-time next bus predictions
-
-        let response = await axios.get(`https://api.wmata.com/NextBusService.svc/json/jPredictions?StopID=${stopID}`, {headers: {"api_key": api_key}});
-        // Define the speakOutput string variable, then populate accordingly
-        let speakOutput;
-        // Check to ensure there is a 'bustime-response' object
-        if(response && response.data){
-          // Check to ensure there are available prediction times
-          //if(response.data['bustime-response'].prd && 0 < response.data['bustime-response'].prd.length){
-            // Extract the arrival time of the lastest bus
-            let stopName = response.data["StopName"];
-            let routeID = response.data['Predictions'][0]["RouteID"];
-            let minutes = response.data['Predictions'][0]["Minutes"];
-            // Construct the next bus arrival speech output with the given time retrieved
-            speakOutput = `the next bus in route ${routeID} will arrive at ${stopName} in ${minutes} minutes`;
-        }else{
-            speakOutput = `An error has occurred while retrieving the position information`;
-        }
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
-            //.withShouldEndSession(true)
-            .getResponse();
-    }
-};
-
 const GetNextTrainIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
@@ -142,7 +54,7 @@ const GetNextTrainIntentHandler = {
         const stations = responseForStations.data["Stations"]; 
         
         
-        //get station code only if the station name given by users is valid, else return null 
+        //gets station code only if the station name given by users is valid, else returns null 
         
         let homeStationSlot = Alexa.getSlot(requestEnvelope, 'HomeStationName');
         let homeStation = getCanonicalSlot(homeStationSlot); // return null if station does not exist 
@@ -179,7 +91,6 @@ const GetNextTrainIntentHandler = {
               // Check to ensure there are available prediction times
               //if(response.data['bustime-response'].prd && 0 < response.data['bustime-response'].prd.length){
                 // Extract the arrival time of the lastest bus
-                //let stopName = response.data["StopName"];
                 speakOutput = `there is no train that goes directly from ${homeStation} to ${userDestination}`;
                 //check if the direction is valid
                 let trainPredictions = response.data['Trains'];
@@ -235,6 +146,47 @@ const GetNextTrainIntentHandler = {
             //.withShouldEndSession(true)
             .getResponse();
         }
+};
+
+const UserSetsHomeIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'UserSetsHomeIntent';
+    },
+    handle(handlerInput){
+        const {attributesManager, requestEnvelope} = handlerInput;
+        // the attributes manager allows us to access session attributes
+        const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        const {intent} = requestEnvelope.request;
+        
+        const getCanonicalSlot = (slot) => {
+        if (slot.resolutions && slot.resolutions.resolutionsPerAuthority.length) {
+            for (let resolution of slot.resolutions.resolutionsPerAuthority) {
+                if (resolution.status && resolution.status.code === 'ER_SUCCESS_MATCH') {
+                    return resolution.values[0].value.name;
+                }
+            }
+            return null; 
+        }
+        else{
+            return null;
+        }
+        }
+       
+        const home = getCanonicalSlot(Alexa.getSlot(requestEnvelope, 'home')); // return null if the station provided is not valid 
+        
+        
+        sessionAttributes['home'] = home;
+        
+        
+        const speakOutput = `Your home station is ${home}, I will remember that from now on. Which station would you like to go today?`;
+        //const repromptOutput = `Please set your home metro station.`;
+        
+        return handlerInput.responseBuilder
+        .speak(speakOutput)
+        //.reprompt(repromptOutput)
+        .getResponse();
+    }
 };
 
 const HelpIntentHandler = {
@@ -347,9 +299,8 @@ const ErrorHandler = {
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
-        GetBusPositionIntentHandler,
-        GetNextBusIntentHandler,
         GetNextTrainIntentHandler,
+        UserSetsHomeIntentHandler,
         HelpIntentHandler,
         CancelAndStopIntentHandler,
         FallbackIntentHandler,
