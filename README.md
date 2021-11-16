@@ -30,7 +30,9 @@ Intent slots are arguments or information users need to provide to a skill in or
 
 ![Screenshot 2021-11-14 at 11 05 07 PM](https://user-images.githubusercontent.com/36772713/141720703-d3d0eb6b-efca-479e-9d96-dbbbfa760e24.png)
 
-Slot types define the kind of data you are expected for each slot. Alexa developer console has some slot types built in, such as airline names and months, and you can also create your own slot type. In my skill, I created my own slot type STATIONNAME, which is a list of DMV metro stations. With my own customized slot type, I can make sure I am getting the valid station names from users, and throw an error messge if users give Alexa a station name that does not exist. 
+Slot types define the kind of data you are expected for each slot. Alexa developer console has some slot types built in, such as airline names and months, and you can also create your own slot types. In my skill, I created my own slot type STATIONNAME, which is a list of DMV metro stations. With my own customized slot type, I can make sure I am getting the valid station names from users, and throw an error messge if users give Alexa a station name that does not exist. 
 
+For each slot, you will decide whether it is a required slot to fulfil an intent. If it is a required one, then you will need to provide a speech prompt for Alexa to prompt users to give the value for that slot. Both GetNextTrainIntent's slots are required, so, for example, if a user says" hey alexa, when does the next train to dupont circle arrives?", Alexa will say "which station are you departing from?" to promt the user to provide the destination station. Note that since HomeStationName is already fulfiled, Alexa will not prompt the user to give this slot information.
 
+Once you have done all these, your basic conversation design is finished! The next step is to handle intents to perform more advanced functions such as storing persistent slot values, chaining different intents or API calling. This will be all done in their backend AWS Lambda. 
 
