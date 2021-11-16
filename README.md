@@ -34,5 +34,7 @@ Slot types define the kind of data you are expected for each slot. Alexa develop
 
 For each slot, you will decide whether it is a required slot to fulfil an intent. If it is a required one, then you will need to provide a speech prompt for Alexa to prompt users to give the value for that slot. Both GetNextTrainIntent's slots are required, so, for example, if a user says" hey alexa, when does the next train to dupont circle arrives?", Alexa will say "which station are you departing from?" to promt the user to provide the destination station. Note that since HomeStationName is already fulfiled, Alexa will not prompt the user to give this slot information.
 
+![Screenshot 2021-11-15 at 7 45 41 PM](https://user-images.githubusercontent.com/36772713/141875409-d86d94f1-2b6a-4f12-9fa5-de33003b9e33.png)
+
 Once you have done all these, your basic conversation design is finished! The next step is to handle intents to perform more advanced functions such as storing persistent slot values, chaining different intents or API calling. This will be all done in their backend AWS Lambda. 
 
