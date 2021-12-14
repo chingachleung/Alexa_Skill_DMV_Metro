@@ -9,7 +9,7 @@ Once you are on their Alexa Skills developer console, **Create Skill** > **Enter
 
 # Invocations
 
-You will need to pick a unique invocation name for you skill. My skill is called dmv metro. So when a user says something like " hey alexa, open DMV metro", Alexa will invoke my skill. So if you are planning to pubish your skill, make sure to pick a unique name!
+You will need to pick a unique invocation name for you skill. Our skill is called dmv metro. So when a user says something like " hey alexa, open DMV metro", Alexa will invoke the skill. So if you are planning to publish your skill, make sure to pick a unique name!
 
 ![Screenshot 2021-11-14 at 9 34 27 PM](https://user-images.githubusercontent.com/36772713/141713309-664c9413-0fa4-4084-a84a-ff5fd57b0822.png)
 
@@ -18,7 +18,7 @@ Intents are basically the features you will provide to your users. In the DMV me
 
 # Sample Utterances
 
-Samples utterances are used to invoke a specific intent within a skill. For example, in my GetNextTrainIntent, these are some of the sample utterances:
+Samples utterances are used to invoke a specific intent within a skill. For example, in the GetNextTrainIntent, these are some of the sample utterances:
 
 ![Screenshot 2021-11-14 at 10 37 03 PM](https://user-images.githubusercontent.com/36772713/141718550-d05cc4c5-0fb2-4052-967a-da2a6614da1f.png)
 
@@ -30,7 +30,7 @@ Intent slots are arguments or information users need to provide to a skill in or
 
 ![Screenshot 2021-11-14 at 11 05 07 PM](https://user-images.githubusercontent.com/36772713/141720703-d3d0eb6b-efca-479e-9d96-dbbbfa760e24.png)
 
-Slot types define the kind of data you are expected for each slot. Alexa developer console has some slot types built in, such as airline names and months, and you can also create your own slot types. In my skill, I created my own slot type STATIONNAME, which is a list of DMV metro stations. With my own customized slot type, I can make sure I am getting the valid station names from users, and throw an error messge if users give Alexa a station name that does not exist. 
+Slot types define the kind of data you are expected for each slot. Alexa developer console has some slot types built in, such as airline names and months, and you can also create your own slot types. In my skill, we created our own slot type STATIONNAME, which is a list of DMV metro stations. With the customized slot type, we can make sure we am getting the valid station names from users, and throw an error messge if users give Alexa a station name that does not exist. 
 
 For each slot, you will decide whether it is a required slot to fulfil an intent. If it is a required one, then you will need to provide a speech prompt for Alexa to prompt users to give the value for that slot. Both GetNextTrainIntent's slots are required, so, for example, if a user says" hey alexa, when does the next train to dupont circle arrives?", Alexa will say "which station are you departing from?" to promt the user to provide the destination station. Note that since HomeStationName is already fulfiled, Alexa will not prompt the user to give this slot information.
 
