@@ -1,5 +1,5 @@
 # DMV_Metro Alexa Skill 
-This Alexa skill used the publicly available [WMATA API](https://developer.wmata.com/docs/services/) to retrieve real-time metro information in the DMV area. Once the skill gets the required intent slot values (the departing station and the destination station) from users, it will be able to tell users when the metro will arrive. The skill was built on Alexa developer console which involves conversation design, backend intent handling using Alexa Skill Kit SDK and API integrations.
+This Alexa skill uses the publicly available [WMATA API](https://developer.wmata.com/docs/services/) to retrieve real-time metro information in the DMV area. Once the skill gets the required intent slot values (the departing station and the destination station) from users, it will be able to tell users when the metro will arrive. The skill was built on Alexa developer console which involves conversation design, backend intent handling using Alexa Skill Kit SDK and API integrations.
 
 # Setup Instructions 
 
