@@ -27,19 +27,20 @@ const GetNextTrainIntentHandler = {
         
         //convert the value spoken by the users into canonical value 
         const getCanonicalSlot = (slot) => {
-        if (slot.resolutions && slot.resolutions.resolutionsPerAuthority.length) {
-            for (let resolution of slot.resolutions.resolutionsPerAuthority) {
-                if (resolution.status && resolution.status.code === 'ER_SUCCESS_MATCH') {
-                    return resolution.values[0].value.name;
+            if (slot.resolutions && slot.resolutions.resolutionsPerAuthority.length) {
+                for (let resolution of slot.resolutions.resolutionsPerAuthority) {
+                    if (resolution.status && resolution.status.code === 'ER_SUCCESS_MATCH') {
+                        return resolution.values[0].value.name;
+                    }
                 }
+                return null; 
             }
-            return null; 
+            else{
+                return null;
+            }
         }
-        else{
-            return null;
-        }
-        }
-        // function to get station code from station name
+        
+        // convert station name to station code
         const getStationCode = (stationName) => {
             for (let i = 0; i < stations.length; i++){
                 if (stations[i]["Name"].toLowerCase() === stationName){
@@ -75,27 +76,27 @@ const GetNextTrainIntentHandler = {
             userDestinationCode = null;
         }
         else{
-            
             userDestinationCode = getStationCode(userDestination.toLowerCase());
         }
        
         // Execute the API call to get the real-time next train predictions
+        
+        // Define the speakOutput string variable, then populate accordingly
         let speakOutput;
         if (!(homeStationCode === null || userDestinationCode === null)){
             let response = await axios.get(`https://api.wmata.com/StationPrediction.svc/json/GetPrediction/${homeStationCode}`, {headers: {"api_key": api_key}});
-            // Define the speakOutput string variable, then populate accordingly
             let found;
             let endPointCode;
             // Check to ensure there is a 'response' object
             if (response && response.data) {
-              // Check to ensure there are available prediction times
+                // default the response
                 speakOutput = `there is no train that goes directly from ${homeStation} to ${userDestination}`;
                 //check if the direction is valid
                 let trainPredictions = response.data['Trains'];
                 for (let i = 0; i <trainPredictions.length; i++){
                     let prediction = trainPredictions[i]
+                    //check if the endpoint is already checked
                     if (prediction["DestinationCode"] === endPointCode){
-                        //check if the endpoint is already checked
                         continue;    
                     }
                     else{
@@ -158,17 +159,17 @@ const UserSetsHomeIntentHandler = {
         const {intent} = requestEnvelope.request;
         
         const getCanonicalSlot = (slot) => {
-        if (slot.resolutions && slot.resolutions.resolutionsPerAuthority.length) {
-            for (let resolution of slot.resolutions.resolutionsPerAuthority) {
-                if (resolution.status && resolution.status.code === 'ER_SUCCESS_MATCH') {
-                    return resolution.values[0].value.name;
+            if (slot.resolutions && slot.resolutions.resolutionsPerAuthority.length) {
+                for (let resolution of slot.resolutions.resolutionsPerAuthority) {
+                    if (resolution.status && resolution.status.code === 'ER_SUCCESS_MATCH') {
+                        return resolution.values[0].value.name;
+                    }
                 }
+                return null; 
             }
-            return null; 
-        }
-        else{
-            return null;
-        }
+            else{
+                return null;
+            }
         }
        
         const home = getCanonicalSlot(Alexa.getSlot(requestEnvelope, 'home')); // return null if the station provided is not valid 
