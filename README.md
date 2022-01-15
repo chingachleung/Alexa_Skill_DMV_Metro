@@ -38,3 +38,4 @@ For each slot, you will decide whether it is required in order to fulfil an inte
 
 Once you have done all these, your basic conversation design is finished! The next step is to perform more advanced functions such as storing persistent slot values, chaining different intents or API calling. These will be all done in their backend AWS Lambda. Check out [`index.js`](https://github.com/chingachleung/Alexa_Skill_DMV_Metro/blob/main/index.js) for the code we baked into the skill. 
 
+We have also built the same skill on the Google Actions Console - take a look at [this repository](https://github.com/chingachleung/GoogleAction_DMV_Metro) to see the code that goes into their backend.
